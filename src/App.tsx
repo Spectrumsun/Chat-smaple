@@ -1,26 +1,20 @@
 import React from 'react';
+import { createStore, applyMiddleware, Store } from "redux"
+import { Provider } from "react-redux"
+import ChatComponent from './Chat';
+import reducer from './store/reducer';
+import { ChatState, UpdateChatAction, DispatchType } from '../types/types'
 
-import logo from './logo.svg';
-import './App.css';
 
-function App() {
+const store: Store<ChatState, UpdateChatAction> & { dispatch: DispatchType } = createStore(reducer)
+
+const App = ()  => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <Provider store={store}>
+    <div>
+      <ChatComponent />
     </div>
+    </Provider>
   );
 }
 
