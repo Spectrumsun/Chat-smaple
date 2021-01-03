@@ -2,8 +2,19 @@ import * as actionTypes from "./actionTypes"
 import { ChatState, UpdateChatAction, IChatData } from '../../types/types';
 import data from '../../src/utils/data';
 
+const getDataFromStorage = () => {
+  const findData = localStorage.getItem('data');
+  if(findData === null) {
+    localStorage.setItem('data', JSON.stringify(data));
+    const getData = localStorage.getItem('data')!;
+    return JSON.parse(getData);
+  }else {
+    return JSON.parse(findData);
+  }
+}
+
 const initialState: ChatState = {
-  chats: data,
+  chats: getDataFromStorage(),
 }
 
 const reducer = ( state: ChatState = initialState,  action: UpdateChatAction ): ChatState => {
@@ -14,10 +25,10 @@ const reducer = ( state: ChatState = initialState,  action: UpdateChatAction ): 
       const existingChat = chatCopy.filter((chat: IChatData) => chat.id !== action.currentId);
       currentChat[0].chat.push(action.typeMessage);
       existingChat.unshift(currentChat[0]);
+      localStorage.setItem('data', JSON.stringify(existingChat));
       return { 
         ...state,
         chats: existingChat,
-        
       }
   }
   return state

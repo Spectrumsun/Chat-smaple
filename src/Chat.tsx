@@ -1,11 +1,24 @@
 import React, { useState, useRef } from 'react';
-import styled from 'styled-components';
 import { Dispatch } from "redux"
 import { useSelector, shallowEqual, useDispatch } from "react-redux"
 import { IChatData, ChatState } from '../types/types';
 import { updateChatList } from './store/actionCreators';
 
-const ChatComponent  = () => {
+import  {
+  Wrapper,
+  Title,
+  ToggleList,
+  SelectMessage,
+  ChatWrapper,
+  NameListContainer,
+  NameList,
+  Chat,
+  Message,
+  TextInput,
+  Button
+} from './styled'
+
+const ChatComponent: React.FC = () => {
   const chatList: IChatData[] = useSelector(
     (state: ChatState) => state.chats,
     shallowEqual
@@ -13,7 +26,10 @@ const ChatComponent  = () => {
 
   const [findChat, setFindChat] = useState<string[]>([]);
   const [currentId, setCurrentId] = useState<number>(0);
+  const [currentName, setCurrentName] = useState<string>('');
   const [typeMessage, setTypeMessage] = useState<string>('');
+  const autoScroll = useRef<HTMLDivElement | null>(null);
+  const [toggleSidebar, setToggleSidebar] = useState<boolean>(false);
 
   
   const dispatch: Dispatch<any> = useDispatch();
@@ -21,11 +37,15 @@ const ChatComponent  = () => {
   const openChat = (
     e: React.MouseEvent<HTMLLIElement>, 
     chat: any[],
-    id: number
+    id: number,
+    name: string,
   ) => {
     setFindChat(chat);
     setCurrentId(id)
     showSelected(e)
+    setToggleSidebar(!toggleSidebar);
+    setCurrentName(name)
+    updateListUi();
   }
 
   const showSelected = (e: React.MouseEvent<HTMLLIElement>) => {
@@ -47,7 +67,7 @@ const ChatComponent  = () => {
         className="list"
         key={chatList.id}
         id={`id-${chatList.id}`}
-        onClick={(e) => openChat(e, chatList.chat, chatList.id)}
+        onClick={(e) => openChat(e, chatList.chat, chatList.id, chatList.name)}
       >
         {chatList.name}
       </li>
@@ -57,8 +77,15 @@ const ChatComponent  = () => {
   </NameList>
   )
 
+  const scrollSelf = () => {
+    if(autoScroll.current === null ) return;
+    const scroll = autoScroll.current.scrollHeight - autoScroll.current.clientHeight;
+    autoScroll.current.scrollTo(0, scroll);
+  };
+
+
   const messageList = () => (
-    <Message>
+    <Message ref={autoScroll}>
       <div>
         {findChat.map((chat, key) => <p key={key}>{chat}</p>)}
       </div>
@@ -78,41 +105,76 @@ const ChatComponent  = () => {
   const handleSend = () => {
     dispatch(updateChatList(typeMessage, currentId))
     setTypeMessage('');
+    scrollSelf();
+
+    // const saveArticle = React.useCallback(
+    //   (article: IArticle) => dispatch(addArticle(article)),
+    //   [dispatch]
+    // );
   };
 
 
   const handleKeyEvent = (e:  React.KeyboardEvent<HTMLTextAreaElement>) => {
     if(e.key === 'Enter' && !e.shiftKey && typeMessage !== ''){
+      e.preventDefault();
       handleSend();
     }
 
     if(e.shiftKey && e.key === 'Enter') {
+      e.preventDefault();
       e.currentTarget.value += '\r\n';
     }
   }
 
+  const openList = (e: React.MouseEvent<HTMLDivElement>) => {
+    setToggleSidebar(!toggleSidebar);
+    updateListUi();
+  }
+
+  const updateListUi = () => {
+    const fineList = document.querySelector('.name-list') as HTMLSelectElement;
+    if (window.screen.width <= 700) {
+      fineList.style.display = toggleSidebar ? 'block' : 'none';
+    }else {
+      fineList.style.display =  'block';
+    }
+  }
+
+
   return (
     <div style={{ marginTop: '50px' }}>
       <Wrapper>
+      <Title>
       <h3>Welcome to Sun</h3>
+      {
+        currentName !== '' && 
+        (<h4>Chatting with {currentName}</h4> )
+      }
+      </Title>
+      <ToggleList onClick={openList}>
+        <h1>☰</h1>
+      </ToggleList>
+  
       <ChatWrapper>
-        <div style={{ overflowY: 'scroll', height: '500px' }}>
+        <NameListContainer className='name-list'>
           {nameList(chatList)}
-        </div>
+        </NameListContainer>
 
       {
-        findChat.length === 0
+        currentId === 0
         ? handleSelectMessage()
         : (
           <Chat>
             {messageList()}
-            <TextInput 
-              value={typeMessage} 
-              onChange={handleOnChange}
-              onKeyPress={handleKeyEvent}
-            />
+            <div style={{ width: '95%' }}>
+              <TextInput 
+                value={typeMessage} 
+                onChange={handleOnChange}
+                onKeyPress={handleKeyEvent}
+              />
+            </div>
             <Button onClick={handleSend} disabled={typeMessage === ''}>
-              Send 
+              Send ⬆︎
             </Button>
           </Chat>
         )
@@ -122,98 +184,5 @@ const ChatComponent  = () => {
     </div>
   );
 }
-
-
-const Wrapper = styled.div`
-  width: 50%;
-  margin: 0 auto;
-  padding: 50px;
-  box-shadow: 0 0 6px 3px #999;
-`
-
-const SelectMessage = styled.p`
-  text-align: center;
-  display: flex;
-  align-items: center;
-`;
-
-
-const ChatWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-  box-shadow: 0 0 6px 3px #F6F6F6;
-`;
-
-const NameList = styled.ul`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-
-  .add-background {
-    background: #42A5F5;
-  }
-
-  .remove-background {
-    background: #F6F6F6;
-  }
-  
-  li {
-    list-style-type: none;
-    background: #F6F6F6;
-    padding: 10px 30px;
-    margin-bottom: 10px;
-    font-size: 20px;
-    cursor: pointer;
-    text-align: center;
-  }
-
-  li:hover {
-    background: #42A5F5;
-  }
-`
-
-const Chat = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 70%;
-  justify-content: space-around;
-  align-items: flex-end;
-  padding: 10px;
-  box-shadow: 0 0 6px 3px #F6F6F6;
-`;
-
-const Message = styled.div`
-  text-align: right;
-  width: 80%;
-  overflow: auto;
-  height: 250px;
-  display: flex;
-  flex-direction: column-reverse;
-  p {
-    padding: 10px;
-    border: 1px solid #191919;
-    background: #F6F6F6;
-    border-radius: 5px;
-  }
-`;
-
-const TextInput = styled.textarea`
-  resize:none;
-  height: 110px;
-  width: 550px;
-  border: 1px solid #191919;
-  border-radius: 5px;
-  padding: 10px;
-`;
-
-
-const Button = styled.button`
-  padding: 10px 33px 10px 10px;
-  border: 0px;
-  background: #42A5F5;
-  color: white;
-  font-size: 30px;
-  cursor: pointer;
-`;
 
 export default ChatComponent;

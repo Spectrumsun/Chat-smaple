@@ -29,7 +29,7 @@ const userList: Array<IChatData> = [
   {
     id: 6,
     name: 'Luck',
-    chat: ['hi', 'how are you']
+    chat: ['My guy how far?']
   },
   {
     id: 7,
@@ -39,12 +39,12 @@ const userList: Array<IChatData> = [
   {
     id: 8,
     name: 'Yinka',
-    chat: ['hi', 'how are you']
+    chat: []
   },
   {
     id: 9,
     name: 'Adelade',
-    chat: ['hi', 'how are you']
+    chat: []
   },
   {
     id: 10,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStore, applyMiddleware, Store } from "redux"
+import { createStore, Store } from "redux"
 import { Provider } from "react-redux"
 import ChatComponent from './Chat';
 import reducer from './store/reducer';
